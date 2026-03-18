@@ -4,50 +4,110 @@ extern GetModuleHandleA
 extern ExitProcess
 extern MessageBoxA
 extern vkCreateInstance
+extern vkEnumeratePhysicalDevices
 extern vkDestroyInstance
 
 section .data
     title: db "App", 0
     text:  db "ok", 0
+    vk_init_good: db "Vulkan driver init succesefull", 0
+    vk_init_bad: db "Error", 0
 
-    instance: dq 0
+    gpu_count: dd 0
+
     align 8
+    instance: dq 0
     vk_struct_type_instance_info: 
-        dd 1
-        align 8
-        dq 0
-        dd 0
-        dq 0 
-        dd 0
-        align 8
-        dq 0
-        dd 0
-        align 8
-        dq 0
+        dd 1 ;sType
+        dd 0 ;padding
+
+        dq 0 ;pNext
+
+        dd 0 ;flags
+        dd 0 ;padding
+
+        dq 0 ;pApplicationInfo
+
+        dd 0 ;enabledLayerCount
+        dd 0 ;padding
+
+        dq 0 ;ppEnabledLayerNames
+
+        dd 0 ;enabledExtensionCount
+        dd 0 ;padding
+        
+        dq 0 ;ppEnabledExtensionNames
+
+section .bss
+    gpu_handles: resq 4
 
 section .text
-global main
+    global main
 
-main:
-    sub rsp, 40 
+    main:     
+        call init_vulkan
+        call cleanup
 
-    lea rcx, [vk_struct_type_instance_info]
-    xor rdx, rdx
-    lea r8, [instance] 
+    init_vulkan:
+        call createInstance
+        call pickPhysicalDevice
+        call no_error
+        ret
 
-    call vkCreateInstance           
+    createInstance:
+        sub rsp, 40
+        lea rcx, [vk_struct_type_instance_info]
+        xor rdx, rdx
+        lea r8, [instance] 
+        call vkCreateInstance
+       
+        test rax, rax
+        jnz error
+        add rsp, 40
+        ret
 
-    xor rcx, rcx          
-    lea rdx, [text]         
-    lea r8,  [title]       
-    mov r9,  0              
+    pickPhysicalDevice:
+        sub rsp, 40
+        mov rcx, [instance]
+        lea rdx, [gpu_count]
+        xor r8, r8
+        call vkEnumeratePhysicalDevices
 
-    call MessageBoxA
+        test rax, rax
+        jnz error
 
-    lea rcx, [instance]
-    xor rdx, rdx
+        mov rdx, [instance]
+        lea rdx, [gpu_count]
+        lea r8, [gpu_handles]
+        call vkEnumeratePhysicalDevices
+        add rsp, 40
+        ret
 
-    call vkDestroyInstance
+    no_error:
+        sub rsp, 40
+        xor rcx, rcx          
+        lea rdx, [vk_init_good]         
+        lea r8,  [title]       
+        mov r9,  0              
+        call MessageBoxA
+        add rsp, 40
+        ret
 
-    xor rcx, rcx
-    call ExitProcess
+    error:
+        sub rsp, 40
+        xor rcx, rcx          
+        lea rdx, [vk_init_bad]         
+        lea r8,  [title]       
+        mov r9,  0              
+        call MessageBoxA
+        add rsp, 40
+        ret
+
+    cleanup:
+        sub rsp, 40
+        mov rcx, [instance]
+        xor rdx, rdx
+        call vkDestroyInstance
+        
+        xor rcx, rcx
+        call ExitProcess
