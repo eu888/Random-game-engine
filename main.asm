@@ -18,35 +18,31 @@ section .data
     align 8
     instance: dq 0
     vk_struct_type_instance_info: 
-        dd 1 ;sType
+        dd 1  ;sType
         dd 0 ;padding
-        dq 0 ;pNext
+        dq 0  ;pNext
         dd 0 ;flags
         dd 0 ;padding
-        dq 0 ;pApplicationInfo
-        dd 0 ;enabledLayerCount
+        dq 0  ;pApplicationInfo
+        dd 0  ;enabledLayerCount
         dd 0 ;padding
-        dq 0 ;ppEnabledLayerNames
-        dd 0 ;enabledExtensionCount
+        dq 0  ;ppEnabledLayerNames
+        dd 0  ;enabledExtensionCount
         dd 0 ;padding
-        dq 0 ;ppEnabledExtensionNames
+        dq 0  ;ppEnabledExtensionNames
 
     DeviceProperties:
-        dd 0 ;apiVersion
-        dd 0 ;padding
-        dd 0 ;driverVersion
-        dd 0 ;padding
-        dd 0 ;vendorID
-        dd 0 ;padding
-        dd 0 ;deviceID
-        dd 0 ;padding
-        dd 0 ;deviceType
-        dd 0 ;padding
+        dd 0  ;apiVersion
+        dd 0  ;driverVersion
+        dd 0  ;vendorID
+        dd 0  ;deviceID
+        dd 0  ;deviceType
         times 256 db 0 ;deviceName  
         times 16 db 0 ;pipelineCacheUUID
+        align 8
         times 226 dd 0 ;props
         times 5 dd 0 ;sparseProperties
-        dd 0 ;padding
+        ;TODO: check alignment and move to .bss
 
     props:
         dd 0  ;apiVersion
@@ -183,6 +179,7 @@ section .data
         dd 0 ;padding
         dd 0  ;continue for floats and remaining fields...
         dd 0 ;padding
+        ;TODO: check alignment and move it to .bss
 
 section .bss
     gpu_handles: resq 4
@@ -197,7 +194,6 @@ section .text
     init_vulkan:
         call createInstance
         call pickPhysicalDevice
-        call connectPhysicalDevice
         call no_error
         ret
 
