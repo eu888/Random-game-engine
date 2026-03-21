@@ -33,16 +33,20 @@ section .data
 
     DeviceProperties:
         dd 0  ;apiVersion
+        dd 0 ;padding
         dd 0  ;driverVersion
+        dd 0 ;padding
         dd 0  ;vendorID
+        dd 0 ;padding
         dd 0  ;deviceID
+        dd 0 ;padding
         dd 0  ;deviceType
+        dd 0 ;padding
         times 256 db 0 ;deviceName  
         times 16 db 0 ;pipelineCacheUUID
         align 8
         times 226 dd 0 ;props
         times 5 dd 0 ;sparseProperties
-        ;TODO: check alignment and move to .bss
 
     props:
         dd 0  ;apiVersion
@@ -179,7 +183,6 @@ section .data
         dd 0 ;padding
         dd 0  ;continue for floats and remaining fields...
         dd 0 ;padding
-        ;TODO: check alignment and move it to .bss
 
 section .bss
     gpu_handles: resq 4
@@ -217,8 +220,9 @@ section .text
         call vkEnumeratePhysicalDevices
         add rsp, 40
 
-        test rax, rax
-        jnz error
+        mov eax, [gpu_count]
+        test eax, eax
+        jz error
 
         sub rsp, 40
         mov rcx, [instance]
